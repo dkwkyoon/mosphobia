@@ -1,0 +1,324 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>모기를 잡아라!</title>
+
+        <link rel="preconnect" href="https://fonts.googleapis.com">
+		<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+		<link href="https://fonts.googleapis.com/css2?family=Dongle:wght@300;400;700&display=swap" rel="stylesheet">
+
+
+    <style>
+
+  .dongle-light {
+          font-family: "Dongle", sans-serif;
+          font-weight: 300;
+          font-style: normal;
+        }
+
+        .dongle-regular {
+          font-family: "Dongle", sans-serif;
+          font-weight: 400;
+          font-style: normal;
+        }
+
+        .dongle-bold {
+          font-family: "Dongle", sans-serif;
+          font-weight: 700;
+          font-style: normal;
+        }
+
+
+   
+        body, html {
+            margin: 0;
+            padding: 0;
+            height: 100%;
+            overflow: hidden; 
+
+        #game-container {
+            position: relative;
+            width: 100%;
+            height: 100vh;
+            cursor: url('fk1.png'), auto;
+            background-image: url('back.png');
+            background-size:cover;
+             background-position: center; 
+             background-repeat: no-repeat;
+        }
+
+        .mosquito {
+            position: absolute;
+            width: 80px; 
+            height: 60px;
+            cursor: url('fk2.png'), auto;;
+        }
+
+        #score-board {
+            position: absolute;
+            top: 10px;
+            left: 10px;
+            font-size: 2.4rem;
+            color: white;
+        }
+
+        .cross-mark {
+            position: absolute;
+            color: red;
+            font-size: 2rem;
+            font-weight: bold;
+            display: none; 
+            pointer-events: none; 
+        }
+
+        .color-paper {
+            position: absolute;
+            width: 30px; 
+            height: 50px;
+            pointer-events: none; /
+        }
+
+        .game-over {
+            position: absolute;
+            top: 50%;
+            left: 50%;
+            transform: translate(-50%, -50%);
+            font-size: 4rem;
+            color: red;
+            display: none; 
+        }
+
+      button {
+      padding: 5px 30px 3px 30px;
+      color: black;
+      font-family:"Dongle", sans-serif;
+      border: 2px solid black;
+      border-radius: 8px;
+      cursor: pointer;
+      font-size: 1.4rem;
+       font-weight: 300;
+        font-style: normal;
+        background-color: white;
+    }
+
+    </style>
+</head>
+<body>
+    <div id="game-container"></div>
+    <div class="dongle-regular" id="score-board">점수: <span id="score">0</span>
+    <div><button id="sound">더 생생하게</button>
+    <audio id="eng" src="sound.mp3"></audio></div>
+    </div>
+    <div class="game-over dongle-regular" id="game-over-message">오늘 밤은 편하게 잘 수 있겠군!</div> 
+
+    <script>
+           let score = 0;
+        const gameContainer = document.getElementById("game-container");
+        const scoreBoard = document.getElementById("score");
+        const gameOverMessage = document.getElementById("game-over-message"); 
+        let gameOver = false; 
+    
+
+        function createMosquitoes(num) {
+            for (let i = 0; i < num; i++) {
+                const mosquito = document.createElement("img");
+                mosquito.src = "mos.png";
+                mosquito.classList.add("mosquito");
+                
+             
+                moveMosquito(mosquito);
+
+                mosquito.addEventListener("click", (event) => {
+                    if (gameOver) return; 
+                    score++;
+                    scoreBoard.textContent = score;
+
+
+                    if (score === 7) {
+                        endGame();
+                        return; 
+                    }
+
+                
+                    const crossMark = document.createElement("div");
+                    crossMark.textContent = "X"; 
+                    crossMark.classList.add("cross-mark");
+                    crossMark.style.left = `${event.clientX}px`;  
+                    crossMark.style.top = `${event.clientY}px`;   
+                    crossMark.style.display = "block";
+                    gameContainer.appendChild(crossMark);
+
+               
+                    setTimeout(() => {
+                        crossMark.remove();
+                    }, 500);
+
+                    
+                    mosquito.remove(); 
+
+                
+                    setTimeout(() => {
+                        if (!gameOver) { 
+                            const newMosquito = createMosquito();
+                            gameContainer.appendChild(newMosquito);
+                        }
+                    }, Math.random() * 3000 + 1500); 
+                });
+
+             
+                gameContainer.appendChild(mosquito);
+
+    
+                moveMosquitoRandomly(mosquito);
+            }
+        }
+
+
+        function moveMosquito(mosquito) {
+            const containerWidth = window.innerWidth - mosquito.offsetWidth;
+            const containerHeight = window.innerHeight - mosquito.offsetHeight;
+
+            const randomX = Math.random() * containerWidth;
+            const randomY = Math.random() * containerHeight;
+
+            mosquito.style.left = `${randomX}px`;
+            mosquito.style.top = `${randomY}px`;
+        }
+
+
+        function moveMosquitoRandomly(mosquito) {
+            const speed = Math.random() * 2 + 1; 
+            let directionX = Math.random() > 0.5 ? 1 : -1; 
+            let directionY = Math.random() > 0.5 ? 1 : -1;
+
+            function animate() {
+                if (gameOver) return; 
+                
+                const currentLeft = parseFloat(mosquito.style.left);
+                const currentTop = parseFloat(mosquito.style.top);
+
+           
+                let newLeft = currentLeft + (directionX * speed);
+                let newTop = currentTop + (directionY * speed);
+
+    
+                if (newLeft < 0 || newLeft > window.innerWidth - mosquito.offsetWidth) {
+                    directionX *= -1; 
+                }
+                if (newTop < 0 || newTop > window.innerHeight - mosquito.offsetHeight) {
+                    directionY *= -1; 
+                }
+
+               
+                mosquito.style.left = `${newLeft}px`;
+                mosquito.style.top = `${newTop}px`;
+
+                requestAnimationFrame(animate); 
+            }
+            animate(); 
+        }
+
+   
+        function createMosquito() {
+            const newMosquito = document.createElement("img");
+            newMosquito.src = "mos.png";
+            newMosquito.classList.add("mosquito");
+            moveMosquito(newMosquito); 
+            moveMosquitoRandomly(newMosquito); 
+
+
+            newMosquito.addEventListener("click", (event) => {
+                if (gameOver) return; 
+                score++;
+                scoreBoard.textContent = score;
+
+
+
+                const crossMark = document.createElement("div");
+                crossMark.textContent = "X";
+                crossMark.classList.add("cross-mark");
+                crossMark.style.left = `${event.clientX}px`;
+                crossMark.style.top = `${event.clientY}px`;
+                crossMark.style.display = "block";
+                gameContainer.appendChild(crossMark);
+
+                setTimeout(() => {
+                    crossMark.remove();
+                }, 500);
+
+                newMosquito.remove(); 
+            });
+
+            return newMosquito; 
+        }
+
+  
+        function endGame() {
+            gameOver = true; 
+            document.querySelectorAll('.mosquito').forEach(mosquito => {
+                mosquito.remove();
+            });
+
+            for (let i = 0; i < 40; i++) { 
+                createColorPaper();
+            }
+
+      
+            gameOverMessage.style.display = "block";
+        }
+
+   
+
+        function createColorPaper() {
+            const randomColor = '#' + Math.floor(Math.random() * 16777215).toString(16); 
+            const colorPaper = document.createElement("div");
+            colorPaper.classList.add("color-paper");
+            colorPaper.style.backgroundColor = randomColor;
+
+    
+            const randomX = Math.random() * (window.innerWidth - 30); 
+            colorPaper.style.left = `${randomX}px`;
+            colorPaper.style.top = "0px";
+
+            gameContainer.appendChild(colorPaper); 
+
+
+            let fallSpeed = Math.random() * 3 + 2; 
+            function fall() {
+                const currentY = parseFloat(colorPaper.style.top);
+                if (currentY < window.innerHeight) {
+                    colorPaper.style.top = `${currentY + fallSpeed}px`; 
+                    requestAnimationFrame(fall);
+                } else {
+                    colorPaper.remove(); 
+                }
+            }
+            fall();
+        }
+
+
+        createMosquitoes(8);
+
+
+        let soundState = "soundon";
+        const butSound = document.getElementById("sound");
+        const eng = document.getElementById("eng");
+
+        butSound.onclick = function () {
+            if (soundState == "soundon") {
+                eng.play();
+                butSound.innerHTML = "듣기 싫어!";
+                soundState = "soundoff";
+            } else if (soundState == "soundoff") {
+                eng.pause();
+                butSound.innerHTML = "더 생생하게";
+                soundState = "soundon";
+            }
+        };
+    </script>
+</body>
+</html>
+</body>
+</html>
